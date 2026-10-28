@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calisthenics Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef2f5;--sf:#fff;--ink:#14202b;--mut:#5b6b78;--ac:#0f766e;--acs:#d5efec;--gold:#f5b700;--ln:#cdd6dd;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181f;--sf:#18232c;--ink:#e7eef3;--mut:#93a3b0;--ac:#2dd4bf;--acs:#173b3a;--ln:#2a3945;--on:#06201d}}
+:root[data-theme="dark"]{--bg:#10181f;--sf:#18232c;--ink:#e7eef3;--mut:#93a3b0;--ac:#2dd4bf;--acs:#173b3a;--ln:#2a3945;--on:#06201d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:"Barlow Condensed",system-ui,sans-serif;margin:0;line-height:1.1}
+h1{font-size:2.4rem}h2{font-size:1.6rem;margin-bottom:10px}
+section{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-top:16px}
+.mut{color:var(--mut)}
+.bar{height:12px;border-radius:6px;background:var(--acs);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac);transition:width .3s}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin:10px 0 6px}
+.ex{border-top:1px solid var(--ln);padding:12px 0}
+.ex:first-of-type{border-top:0}
+.ex h3{font-size:1.25rem}
+.sets{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.set{min-width:84px;min-height:44px;border:2px solid var(--ln);background:transparent;color:var(--ink);border-radius:8px;font:600 .95rem Barlow,sans-serif;cursor:pointer}
+.set[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.done{background:var(--acs);border-radius:8px;padding:10px 12px;margin-top:12px;font-weight:600}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal b{font-size:.8rem;color:var(--mut);font-weight:500}
+.d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.9rem}
+.d.w{border:1.5px dashed var(--mut)}
+.d.ok{background:var(--ac);color:var(--on);border:0;font-weight:600}
+.d.t{box-shadow:0 0 0 3px var(--gold)}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.nav button{min-height:40px;min-width:40px;border:1px solid var(--ln);background:transparent;color:var(--ink);border-radius:8px;font-size:1.1rem;cursor:pointer}
+.yr{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:120px;margin-top:8px}
+.yr div{display:flex;flex-direction:column;justify-content:flex-end;height:100%;text-align:center;font-size:.72rem;color:var(--mut)}
+.yr span{display:block;background:var(--ac);border-radius:4px 4px 0 0;min-height:3px;margin-bottom:4px}
+.yr .bg{background:var(--acs);border-radius:4px 4px 0 0;display:flex;align-items:flex-end;height:100%;margin-bottom:4px}
+.yr .bg span{width:100%;margin:0}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.b{border:1px solid var(--ln);border-radius:10px;padding:12px;opacity:.5;filter:grayscale(1)}
+.b.on{opacity:1;filter:none;border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.b .e{font-size:1.8rem}.b strong{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.15rem}
+.b small{color:var(--mut)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:9}
+.auth{display:flex gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.auth{display:flex;gap:10px}.auth button{min-height:44px;padding:0 16px;border:2px solid var(--ac);background:var(--ac);color:var(--on);border-radius:8px;font:600 1rem Barlow,sans-serif;cursor:pointer}.auth button.o{background:transparent;color:var(--ink);border-color:var(--ln)}
+.reset{margin-top:20px;background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;min-height:44px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Calisthenics Tracker</h1>
+<p class="mut" id="sub"></p>
+<div class="auth" id="auth"></div>
+<section id="today"></section>
+<section id="prog"></section>
+<section><h2>Month</h2><div id="cal"></div></section>
+<section><h2>Year</h2><div id="yr"></div></section>
+<section><h2>Achievements</h2><div class="badges" id="badges"></div></section>
+<button class="reset" id="reset">Reset all progress</button>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Paste your Firebase web app config here
+var CFG={apiKey:"AIzaSyCTWkq8w4Lu18jE2AsIm38PiHPKvDy4rH0",authDomain:"calisthenics-tracker-2f769.firebaseapp.com",projectId:"calisthenics-tracker-2f769",appId:"1:637617429179:web:a78e6e38993d30b9f5679e"};
+var ok=CFG.apiKey.indexOf('PASTE')<0,auth,db,user=null;
+if(ok){var app=initializeApp(CFG);auth=getAuth(app);db=getFirestore(app)}
+var PLAN=[
+{id:'push',name:'Push-ups',target:'8–12 reps',note:'Elevate your hands if needed. Go slowly. Works chest, shoulders, triceps.'},
+{id:'squat',name:'Bodyweight squats',target:'10–12 reps',note:'Sit back like sitting on a chair. Works thighs and glutes.'},
+{id:'row',name:'Australian pull-ups',target:'10 reps',note:'Pull with your back. Works back and biceps.'},
+{id:'plank',name:'Plank',target:'30–45 seconds',note:'Keep your core tight. The base for advanced moves.'}];
+var SETS=3,DAYS=[1,3,5],DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var S={},KEY='calisthenics-v1',now=new Date(),vm=now.getMonth(),vy=now.getFullYear(),seen={};
+try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){S={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+if(user)setDoc(doc(db,'users',user.uid),{days:S}).catch(function(){toast('Could not sync. Check your internet.')})}
+function renderAuth(){var a=document.getElementById('auth');
+if(!ok){a.innerHTML='<span class="mut">Cloud sync is not set up yet. Progress is saved on this device only.</span>';return}
+if(user){a.innerHTML='<span>Signed in as <strong>'+(user.displayName||user.email)+'</strong></span><button class="o" id="so">Sign out</button>';
+document.getElementById('so').onclick=function(){signOut(auth);try{localStorage.removeItem(KEY)}catch(e){}S={};seen={}}}
+else{a.innerHTML='<button id="si">Sign in with Google to save online</button>';
+document.getElementById('si').onclick=function(){signInWithPopup(auth,new GoogleAuthProvider()).catch(function(){toast('Sign in failed. Try again.')})}}}
+if(ok)onAuthStateChanged(auth,async function(u){user=u;
+if(u){try{var sn=await getDoc(doc(db,'users',u.uid)),c=sn.exists()?(sn.data().days||{}):{};
+Object.keys(S).forEach(function(k){if(!c[k])c[k]=S[k]});S=c;save()}catch(e){toast('Could not load your saved progress')}}
+renderAuth();render(true)});
+function pad(n){return n<10?'0'+n:''+n}
+function key(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function isW(d){return DAYS.indexOf(d.getDay())>-1}
+function done(k){var s=S[k];if(!s)return false;return PLAN.every(function(e){return s[e.id]&&s[e.id].filter(Boolean).length>=SETS})}
+function sched(y,m){var n=0,c=0,dim=new Date(y,m+1,0).getDate();for(var i=1;i<=dim;i++){var d=new Date(y,m,i);if(isW(d)){n++;if(done(key(d)))c++}}return{n:n,c:c}}
+function wkStart(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function bar(l,a,b){return '<div class="row"><strong>'+l+'</strong><span class="mut">'+a+' of '+b+' workouts · '+pct(a,b)+'%</span></div><div class="bar" role="progressbar" aria-label="'+l+'" aria-valuenow="'+pct(a,b)+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct(a,b)+'%"></i></div>'}
+function stats(){var t=0,weeks={};Object.keys(S).forEach(function(k){if(done(k)){t++;var p=k.split('-'),w=key(wkStart(new Date(+p[0],p[1]-1,+p[2])));weeks[w]=(weeks[w]||0)+1}});
+var full=Object.keys(weeks).filter(function(w){return weeks[w]>=3}).length;return{t:t,full:full}}
+var BADGES=[
+['🌱','First rep','Finish 1 workout',function(s){return s.t>=1}],
+['🔥','Full week','Do all 3 days in one week',function(s){return s.full>=1}],
+['💪','Ten down','Finish 10 workouts',function(s){return s.t>=10}],
+['📅','Month master','4 full weeks',function(s){return s.full>=4}],
+['🏅','Quarter century','Finish 25 workouts',function(s){return s.t>=25}],
+['🥇','Half hundred','Finish 50 workouts',function(s){return s.t>=50}],
+['🏆','Century','Finish 100 workouts',function(s){return s.t>=100}]];
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},3000)}
+function nextDay(){var d=new Date(now);for(var i=1;i<8;i++){d.setDate(d.getDate()+1);if(isW(d))return DN[d.getDay()]}}
+function render(first){
+var k=key(now),el=document.getElementById('today'),h='';
+document.getElementById('sub').textContent=DN[now.getDay()]+', '+now.getDate()+' '+MN[now.getMonth()]+' '+now.getFullYear()+' · Workout days: Monday, Wednesday, Friday';
+if(isW(now)){
+var s=S[k]||{},tot=0;PLAN.forEach(function(e){tot+=(s[e.id]||[]).filter(Boolean).length});
+h='<h2>Today’s workout</h2><p class="mut">Warm up for 5 minutes first. Rest 60–90 seconds between sets.</p>'+bar('Today',tot,PLAN.length*SETS).replace(/workouts/,'sets');
+PLAN.forEach(function(e){h+='<div class="ex"><h3>'+e.name+' — '+SETS+' × '+e.target+'</h3><div class="mut">'+e.note+'</div><div class="sets">';
+for(var i=0;i<SETS;i++)h+='<button class="set" data-e="'+e.id+'" data-i="'+i+'" aria-pressed="'+!!(s[e.id]&&s[e.id][i])+'">Set '+(i+1)+'</button>';h+='</div></div>'});
+if(done(k))h+='<div class="done">✅ Workout complete. Great job! Rest tomorrow.</div>';
+}else h='<h2>Rest day</h2><p>No workout today. Let your muscles recover. Your next workout is <strong>'+nextDay()+'</strong>.</p>';
+el.innerHTML=h;
+var w0=wkStart(now),wc=0;for(var i=0;i<7;i++){var d=new Date(w0);d.setDate(d.getDate()+i);if(isW(d)&&done(key(d)))wc++}
+var m=sched(now.getFullYear(),now.getMonth()),yc=0,yn=0;for(var j=0;j<12;j++){var q=sched(now.getFullYear(),j);yc+=q.c;yn+=q.n}
+document.getElementById('prog').innerHTML='<h2>Progress</h2>'+bar('This week',wc,3)+bar(MN[now.getMonth()],m.c,m.n)+bar(now.getFullYear()+' so far',yc,yn);
+// calendar
+var cal='<div class="nav"><button id="pm" aria-label="Previous month">‹</button><strong>'+MN[vm]+' '+vy+'</strong><button id="nm" aria-label="Next month">›</button></div><div class="cal">';
+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(function(x){cal+='<b>'+x+'</b>'});
+var f=(new Date(vy,vm,1).getDay()+6)%7,dim=new Date(vy,vm+1,0).getDate();
+for(var a=0;a<f;a++)cal+='<span></span>';
+for(var n=1;n<=dim;n++){var dd=new Date(vy,vm,n),c='d';if(isW(dd))c+=' w';if(done(key(dd)))c+=' ok';if(key(dd)===k)c+=' t';cal+='<div class="'+c+'">'+n+'</div>'}
+var mm=sched(vy,vm);
+document.getElementById('cal').innerHTML=cal+'</div><p class="mut">Filled = workout done. Dashed = workout day still to do. '+mm.c+' of '+mm.n+' done this month.</p>';
+document.getElementById('pm').onclick=function(){vm--;if(vm<0){vm=11;vy--}render()};
+document.getElementById('nm').onclick=function(){vm++;if(vm>11){vm=0;vy++}render()};
+// year
+var y='<div class="yr">';for(var z=0;z<12;z++){var r=sched(now.getFullYear(),z);y+='<div title="'+MN[z]+': '+r.c+' of '+r.n+'"><div class="bg"><span style="height:'+pct(r.c,r.n)+'%"></span></div>'+MN[z].slice(0,3)+'</div>'}
+document.getElementById('yr').innerHTML=y+'</div><p class="mut">Each bar shows how much of that month’s workouts you finished in '+now.getFullYear()+'.</p>';
+// badges
+var st=stats(),b='';BADGES.forEach(function(x){var on=x[3](st);b+='<div class="b'+(on?' on':'')+'"><span class="e">'+x[0]+'</span><strong>'+x[1]+'</strong><small>'+(on?'Unlocked':x[2])+'</small></div>';
+if(on&&!seen[x[1]]){if(!first&&seen.init)toast('Achievement unlocked: '+x[1]+' '+x[0]);seen[x[1]]=1}});
+seen.init=1;document.getElementById('badges').innerHTML=b;
+}
+document.addEventListener('click',function(ev){var t=ev.target.closest('.set');if(!t)return;
+var k=key(now),e=t.dataset.e,i=+t.dataset.i;S[k]=S[k]||{};S[k][e]=S[k][e]||[false,false,false];S[k][e][i]=!S[k][e][i];save();render()});
+document.getElementById('reset').onclick=function(){if(confirm('Delete all your progress? This cannot be undone.')){S={};seen={};save();render(true)}};
+renderAuth();render(true);
+</script>
+</body>
+</html>
